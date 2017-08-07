@@ -11,17 +11,27 @@ const thread_sleep = timeout =>
 /*
     U
         1 obtain list of servers
-        2 if not known
-            3 if started at + rolloverInterval > now
-                4 let next rollover time = now + ((started at + rolloverInterval) - now)
-            5 else
-                6 let next rollover time = now + rolloverInterval
+        2 obtain list of containers
+        3 sort containers by started date
+        4 if first iteration, -reload
+            5 return
+        6 if containerIds differ, -reload
+            7 return
+
+    U: -reload
+        1 obtain containerIds
+        2 for each serviceName
+            3 set serviceName => containerIds, sorted by started date
+            4 3 let next rollover iteration = now + initialDebounce
 
     W
-        1 if next rollover time < now
-            2 stop
-            3 start
-            4 let next rollover time = now + (rolloverInterval * 0.5) + (rolloverInterval * Math.random() * 0.5)
+        1 for each service
+            2 if now is after next rollover iteration
+                3 let next rollover iteration = now + rolloverInterval
+                4 let containerId = first id in list
+                5 push containerId to end of containerIds
+                6 stop container by containerId
+                7 start container by containerId
 */
 
 class FriendlyFire {
