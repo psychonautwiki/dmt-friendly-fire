@@ -40,6 +40,7 @@ class FriendlyFire {
             workerMutex: false,
             rolloverInterval: 30 * 60 * 1000,
             initialDebounce: 5 * 60 * 1000,
+            serviceRerollDistance: 5 * 60 * 1000,
             services: [],
             serviceMap: new Map(),
             serviceIntervals: {}
@@ -91,7 +92,7 @@ class FriendlyFire {
         }).map(container => container.Id);
     }
 
-    * _updateServiceMapping (rootService, containerIds) {
+    * _updateServiceMapping (serviceIndex, rootService, containerIds) {
         const sortedContainerIds = yield* this._sortContainersByAge(containerIds);
 
         console.log('Reloading service map..\n');
@@ -104,7 +105,12 @@ class FriendlyFire {
 
         this._config.serviceMap.set(rootService, sortedContainerIds);
 
-        this._config.serviceIntervals[rootService] = new Date(Date.now() + this._config.initialDebounce);
+        this._config.serviceIntervals[rootService] =
+            new Date(
+                Date.now()
+                + this._config.initialDebounce
+                + (this._config.serviceRerollDistance * serviceIndex)
+            );
     }
 
     _containerIdDisplay (containerId) {
@@ -147,14 +153,18 @@ FriendlyFire.prototype._updateMemory = Promise.coroutine(function* () {
         if (!this._config.serviceMap.size) {
             this._config.serviceMap = serviceMap;
 
+            let i = 0;
+
             for (const service of this._config.serviceMap) {
                 const [rootService, containerIds] = service;
 
-                yield* this._updateServiceMapping(rootService, containerIds);
+                yield* this._updateServiceMapping(i++, rootService, containerIds);
             }
 
             continue;
         }
+
+        let i = 0;
 
         for (const service of this._config.serviceMap) {
             const [rootService, containerIds] = service;
@@ -167,7 +177,7 @@ FriendlyFire.prototype._updateMemory = Promise.coroutine(function* () {
                 );
 
                 if (idsDiffer) {
-                    yield* this._updateServiceMapping(rootService, containerIds);
+                    yield* this._updateServiceMapping(i++, rootService, containerIds);
                 }
             }
         }
@@ -181,11 +191,18 @@ FriendlyFire.prototype._worker = Promise.coroutine(function* () {
 
     this._workerMutex = true;
 
+    let i = 0;
+
     for (const service of this._config.serviceMap) {
         const [rootService, containerIds] = service;
 
         if (this._config.serviceIntervals[rootService] < new Date()) {
-            this._config.serviceIntervals[rootService] = new Date(Date.now() + this._config.rolloverInterval);
+            this._config.serviceIntervals[rootService] =
+                new Date(
+                    Date.now()
+                    + this._config.rolloverInterval
+                    + (this._config.serviceRerollDistance * i++)
+                );
 
             const containerId = containerIds.shift();
                                 containerIds.push(containerId);
