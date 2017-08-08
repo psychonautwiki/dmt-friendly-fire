@@ -62,8 +62,9 @@ class FriendlyFire {
 
         this._getServiceEnv();
 
-        setInterval((() => this._updateMemory()), 5000);
         setInterval((() => this._worker()), 2000);
+
+        this._updateMemory();
     }
 
     _getServiceEnv () {
@@ -171,7 +172,7 @@ FriendlyFire.prototype._updateMemory = Promise.coroutine(function* () {
             }
         }
 
-        yield thread_sleep(1000);
+        yield thread_sleep(5000);
     }
 });
 
