@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "dockerode": "^2.5.0"
+    "bluebird": "^3.5.3",
+    "dockerode": "^2.5.7"
   },
   "devDependencies": {},
   "scripts": {
@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/KenanSulayman/dmt-friendly-fire/issues"
   },
-  "homepage": "https://github.com/KenanSulayman/dmt-friendly-fire#readme"
+  "homepage": "https://github.com/KenanSulayman/dmt-friendly-fire#readme",
+  "installConfig": {
+    "pnp": true
+  }
 }
